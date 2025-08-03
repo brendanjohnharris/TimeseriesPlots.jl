@@ -39,7 +39,7 @@ begin # * Animation
     f = Figure(size = (300, 300))
     r = 50
     ax = Axis(f[1, 1], limits = ((-r, r), (-r, r)))
-    xy = Observable([Point2f(first.([x, y]))])
+    xy = Observable([Point2f([NaN, NaN])])
     p = trails!(ax, xy, n_points = 100, colormap = cgrad(:turbo), color = 1:100)
     hidedecorations!(ax)
 

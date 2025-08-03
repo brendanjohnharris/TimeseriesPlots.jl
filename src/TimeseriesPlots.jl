@@ -28,6 +28,13 @@ function get_drop_attrs(P::Type{<:Plot}, keys)
     return drop_attrs(attrs, keys)
 end
 
+MColor = Union{<:AbstractString, <:Symbol}
+MakieColor = Union{<:MColor, <:Tuple{<:MColor, <:Number}}
+maybecolor(x::MakieColor) = Makie.to_color(x)
+maybecolor(x) = x
+
+minmax(x) = (x .- minimum(x)) ./ (maximum(x) - minimum(x))
+minmax(x::Number) = x
 include("Recipes.jl")
 
 end

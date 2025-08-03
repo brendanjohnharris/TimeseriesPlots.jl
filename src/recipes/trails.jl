@@ -1,153 +1,135 @@
-@recipe Trails (x,) begin
-    cycle = :linecolor
+"""
+    trails(x, y; kwargs...)
 
+Plot a fading trace of points in 2D or 3D space.
+
+## Key attributes:
+`npoints` = `automatic`: Fixes the length of the trail.
+By default, this is equal to the
+length of `x` and `y`.
+If `npoints` is less than the length of `x` and `y`, the last `npoints` will be plotted.
+
+`linecolor` = `@inherit linecolor`: Sets the color of the trail.
+Should be a single color (e.g. "red", :red, (:red, 0.2), RGBA(0.1, 0.2, 0.3, 0.4)). This
+value is overridden by `color`
+
+`color` = `nothing`: Specifies the color values for the trail.
+
+If `!isnothing(color)`, trail colors will be sampled from the `colormap` depending on the
+value of `color`.
+`color` can be:
+
+- A collection of numbers representing values to be sampled from the colormap.
+- A function of the index of a point in the trail (e.g. `Base.Fix2(^, 3)`).
+
+`colormap` = `@inherit colormap`: Specifies the colormap to use for the trail when
+`!isnothing(color)`.
+
+`alpha` = `identity`: Controls the transparency profile of the trail. `alpha` can be:
+
+- A single number (e.g. `0.5`).
+- A function of the index of a point in the trail (e.g. `Base.Fix2(^, 3)`).
+- A collection of numbers representing alpha values for each point in the trail.
+
+To sidestep alpha normalization, explicitly pass a vector of alpha values.
+"""
+@recipe Trails (x,) begin
+    linecolor = @inherit linecolor
+    color = nothing
+    colormap = @inherit colormap
     alpha = identity
     n_points = automatic
 
-    get_drop_attrs(Lines, [:cycle, :alpha])...
+    get_drop_attrs(Lines, [:cycle, :alpha, :color, :linecolor, :colormap])...
 end
 function Makie.plot!(plot::Trails{<:Tuple{<:Vector{<:Point}}})
-    # Step 1: Parse and validate inputs
-    map!(plot.attributes, [:x, :color, :colormap, :alpha, :n_points],
-         [:parsed_color, :parsed_colormap, :validated_n_points]) do x, color, colormap,
-                                                                    alpha, n_points
-        isempty(x) && return color, colormap, 0
-        N = length(x)
 
-        # Parse color once
-        parsed_color = color isa Symbol ? Makie.to_color(color) : color
-        parsed_colormap = colormap isa Symbol ? cgrad(colormap) : colormap
-
-        # Choose n_points with early returns
-        if n_points === automatic
-            validated_n_points = N
-            # Check constraints in order of likely impact
-            if !(alpha isa Function) && (length(alpha) > 1 && (eltype(alpha) <: Real))
-                validated_n_points = min(validated_n_points, length(alpha))
-            end
-            if !(parsed_color isa Colorant) && length(parsed_color) > 1 &&
-               (eltype(parsed_color) <: Real || eltype(parsed_color) <: Colorant)
-                validated_n_points = min(validated_n_points, length(parsed_color))
-            end
-        else
-            validated_n_points = max(1, min(n_points, N))
+    # * Parse colors
+    map!(plot.attributes, [:linecolor, :color, :colormap],
+         [:parsed_color, :parsed_colormap]) do linecolor, color, colormap
+        if isnothing(color) # Color and colormap are unused
+            parsed_color = identity
+            parsed_colormap = cgrad([maybecolor(linecolor)])
+        else # Sample the colormap and ignore linencolor
+            parsed_color = color
+            parsed_colormap = cgrad(colormap)
         end
 
-        return parsed_color, parsed_colormap, validated_n_points
+        return parsed_color, parsed_colormap # To be sampled after calculating points
     end
 
-    # Step 2: Process color data
-    map!(plot.attributes, [:x, :parsed_color, :parsed_colormap, :validated_n_points],
-         [:processed_color, :final_colormap]) do x, color, colormap, n_points
-        isempty(x) && return Float64[], colormap
+    # * Compute n_points
+    map!(plot.attributes, [:x, :parsed_color, :alpha, :n_points],
+         [:final_n_points]) do x, color, alpha, n_points
+        isempty(x) && return 0
 
-        if color isa Colorant || color isa Symbol || first(color) isa Colorant ||
-           first(color) isa Symbol
-            color = Makie.to_color(color)
-            final_colormap = cgrad([color, color])
-            processed_color = n_points == 1 ? [1.0] : range(0, 1, length = n_points)
-        else
-            final_colormap = colormap
-            processed_color = color
+        if alpha isa Function
+            nalpha = length(x)
+        elseif eltype(alpha) <: Real
+            nalpha = length(alpha)
         end
-        # Interpolate colormap
-        final_colormap = cgrad(final_colormap)
-        return processed_color, final_colormap
+        if color isa Function
+            ncolor = length(x)
+        elseif eltype(color) <: Real
+            ncolor = length(color)
+        end
+
+        final_n_points = min(length(x), nalpha, ncolor)
+
+        if n_points != automatic
+            final_n_points = min(final_n_points, n_points)
+        end
+
+        return (final_n_points,)
     end
 
-    # Step 3: Process alpha data
-    map!(plot.attributes, [:alpha, :validated_n_points],
+    # * Sample colormap
+    map!(plot.attributes, [:parsed_color, :parsed_colormap, :final_n_points],
+         [:processed_color]) do color, colormap, n_points
+        if color isa Function
+            color = color.(1:n_points)
+        else
+            color = collect(color[(end - n_points + 1):end])
+        end
+        processed_color = colormap[minmax(color)]
+        return (processed_color,)
+    end
+
+    # * Sample alphamap
+    map!(plot.attributes, [:alpha, :final_n_points],
          [:processed_alpha]) do alpha, n_points
-        n_points == 0 && return Float64[]
-
-        if alpha isa Real
-            alpha_vals = fill(alpha, n_points)
-        elseif alpha isa Function
-            alpha_vals = convert(Vector{Float32}, alpha.(1:n_points))
+        if alpha isa Function
+            alpha_vals = alpha.(1:n_points) |> minmax
         else
-            if length(alpha) < n_points
-                # Handle insufficient alpha data
-                if length(alpha) == 1
-                    alpha_vals = fill(clamp(alpha[1], 0.0, 1.0), n_points)
-                else
-                    alpha_vals = [clamp(alpha[mod1(i, length(alpha))], 0.0, 1.0)
-                                  for i in 1:n_points]
-                end
-            else
-                alpha_vals = alpha[(end - n_points + 1):end]
-            end
+            alpha_vals = collect(alpha[(end - n_points + 1):end])
         end
-
         return (alpha_vals,)
     end
 
-    # Step 4: Normalize data
-    map!(plot.attributes, [:processed_color, :processed_alpha, :validated_n_points],
-         [:normalized_color, :normalized_alpha]) do color, alpha_vals, n_points
-        n_points <= 1 && return color, alpha_vals
-
-        # Normalize alpha
-        normalized_alpha = copy(alpha_vals)
-        alpha_min, alpha_max = extrema(normalized_alpha)
-        if alpha_max > alpha_min
-            alpha_range = alpha_max - alpha_min
-            normalized_alpha .= (normalized_alpha .- alpha_min) ./ alpha_range
+    # * Blend alpha
+    map!(plot.attributes, [:processed_color, :processed_alpha],
+         [:final_color]) do color, alpha
+        final_color = map(color, alpha) do c, a
+            Makie.coloralpha(c, c.alpha * a)
         end
-
-        # Normalize color
-        normalized_color = color
-        if !(color isa AbstractRange) && eltype(color) <: Real
-            color_min, color_max = extrema(color)
-            if color_max > color_min
-                color_range = color_max - color_min
-                normalized_color = (color .- color_min) ./ color_range
-            end
-        end
-
-        return normalized_color, normalized_alpha
+        return (final_color,)
     end
 
-    # Step 5: Generate final colors and trim data
-    map!(plot.attributes,
-         [:x, :normalized_color, :final_colormap, :normalized_alpha, :validated_n_points],
-         [:trimmed_x, :c]) do x, color, colormap, alpha_vals, n_points
-        isempty(x) && return x, Vector{Makie.RGBA}()
-        N = length(x)
-
-        # Handle single point case
-        if n_points <= 1
-            offset = min(n_points, N)
-            trimmed_x = x[(end - offset + 1):end]
-            if n_points == 0
-                return trimmed_x, Vector{Makie.RGBA}()
-            end
-
-            base_color = colormap[0.0]
-            alpha_val = length(alpha_vals) > 0 ? first(alpha_vals) : 1.0
-            c = [Makie.RGBA(base_color.r, base_color.g, base_color.b,
-                            clamp(alpha_val, 0.0, 1.0) * base_color.alpha)]
-            return trimmed_x, c
+    # * Trim points
+    map!(plot.attributes, [:x, :final_n_points],
+         [:final_x]) do x, n_points
+        if isempty(x)
+            final_x = x
+        elseif n_points == 1
+            offset = min(n_points, length(x))
+            final_x = @view x[(end - offset + 1):end]
+        else
+            final_x = @view x[(end - n_points + 1):end]
         end
-
-        # Sample colormap and blend alpha efficiently
-        c = Vector{Makie.RGBA}(undef, n_points)
-        @inbounds for i in 1:n_points
-            color_idx = color isa AbstractRange ? color[i] :
-                        (eltype(color) <: Real ? clamp(color[i], 0.0, 1.0) : color[i])
-            base_color = colormap[color_idx]
-            c[i] = Makie.RGBA(base_color.r, base_color.g, base_color.b,
-                              alpha_vals[i] * base_color.alpha)
-        end
-
-        # Trim x efficiently
-        offset = min(n_points, N)
-        trimmed_x = @view x[(end - offset + 1):end]
-
-        return collect(trimmed_x), c
+        return (final_x,)
     end
-
-    lines!(plot, plot.attributes, plot.trimmed_x; color = plot.c, colormap = :viridis,
-           alpha = 1.0)
+    lines!(plot, plot.attributes, plot.final_x; color = plot.final_color,
+           colormap = :viridis, alpha = 1.0)
 end
 Makie.convert_arguments(::Type{<:Trails}, x, y) = (Point2f.(zip(x, y)),)
 Makie.convert_arguments(::Type{<:Trails}, x, y, z) = (Point3f.(zip(x, y, z)),)
