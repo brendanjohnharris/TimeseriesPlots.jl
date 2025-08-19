@@ -42,6 +42,8 @@ To sidestep alpha normalization, explicitly pass a vector of alpha values.
 
     get_drop_attrs(Lines, [:cycle, :alpha, :color, :linecolor, :colormap])...
 end
+Makie.conversion_trait(::Type{<:Trail}) = Makie.PointBased()
+
 function Makie.plot!(plot::Trail{<:Tuple{<:Vector{<:Point}}})
 
     # * Parse colors

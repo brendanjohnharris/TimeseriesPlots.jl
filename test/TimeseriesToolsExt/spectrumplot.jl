@@ -14,7 +14,6 @@ end
     t = 0.005:0.005:1e4
     x = colorednoise(t, u"s") * u"V"
     s = spectrum(x)
-    X = cat(Var(1:2), x, x .+ 1.0 * u"V", dims = 2)
 
     f = Figure(size = (1000, 1000))
     uc = Makie.UnitfulConversion(u"s^-1"; units_in_label = false)
@@ -28,5 +27,15 @@ end
 
     display(f)
 
-    TimeseriesPlots.plotspectrum(s)
+    X = ToolsArray([colorednoise(t[1:10:end], u"s") .* i * u"V" for i in 1:10],
+                   Var(1:10)) |>
+        stack
+    S = spectrum(X)
+    f = Figure(size = (1000, 1000))
+    ax = Axis(f[1, 1], xscale = log10, yscale = log10,
+              xticks = logrange(1, 100, 5))
+    TimeseriesPlots.spectrumplot!(ax, S)
+    display(f)
+
+    TimeseriesPlots.plotspectrum(S)
 end

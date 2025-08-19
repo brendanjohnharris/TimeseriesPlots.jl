@@ -10,7 +10,9 @@
 
     get_drop_attrs(Lines, [])...
 end
-function Makie.plot!(plot::Shadows{<:Tuple{<:Vector{<:Point3f}}})
+Makie.conversion_trait(::Type{<:Shadows}) = Makie.PointBased()
+
+function Makie.plot!(plot::Shadows{<:Tuple{<:Vector{<:Point3}}})
     map!(plot.attributes, [:x, :mode, :swapshadows, :limits],
          [:xs, :ys, :zs]) do x, mode, swapshadows, limits
         _x = map(Base.Fix2(getindex, 1), x)

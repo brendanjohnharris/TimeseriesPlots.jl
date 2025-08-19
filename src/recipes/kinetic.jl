@@ -19,7 +19,7 @@ Sets the algorithm for determining the line width.
 
 `linewidthscale` = `1`: Scale factor for the line width.
 """
-@recipe Kinetic (x, y) begin
+@recipe Kinetic (x,) begin
     cycle = :color
     color = @inherit linecolor
     linewidth = :curv
@@ -27,11 +27,21 @@ Sets the algorithm for determining the line width.
 
     get_drop_attrs(Density, [:cycle, :color, :linewidth])...
 end
+Makie.conversion_trait(::Type{<:Kinetic}) = Makie.PointBased()
 
 function interleave(x)
-    x = [collect(x[i:(i + 1)]) for i in eachindex(x)[1:(end - 1)]]
-    # append!.(x, NaN)
-    vcat(x...)
+    # Create segments as pairs of consecutive points
+    segments = Vector{eltype(x)}()
+    if length(x) == 1
+        push!(segments, x[1])
+        push!(segments, x[1])
+    else
+        for i in 1:(length(x) - 1)
+            push!(segments, x[i])
+            push!(segments, x[i + 1])
+        end
+    end
+    return segments
 end
 function minter(x)
     l = map(eachindex(x)) do i
@@ -66,9 +76,11 @@ function difter(x)
     return l[2:end]
 end
 
-function Makie.plot!(plot::Kinetic{<:Tuple{AbstractVector{<:Real}, AbstractVector{<:Real}}})
-    map!(plot.attributes, [:linewidth, :x, :y, :linewidthscale],
-         :linewidths) do l, x, y, lscale
+function Makie.plot!(plot::Kinetic{<:Tuple{<:Vector{<:Point{2, T}}}}) where {T <: Real}
+    map!(plot.attributes, [:linewidth, :x, :linewidthscale],
+         :linewidths) do l, xy, lscale
+        x = map(first, xy)
+        y = map(last, xy)
         if l isa Number
             l = fill(l, length(x) - 1)
         elseif l === :x
@@ -81,9 +93,9 @@ function Makie.plot!(plot::Kinetic{<:Tuple{AbstractVector{<:Real}, AbstractVecto
         [x for x in l for _ in 1:2] .* lscale
     end
 
-    map!(plot.attributes, [:x, :y], :xy) do x, y
-        map(Point2f, zip(interleave(x), interleave(y)))
+    map!(plot.attributes, [:x], :final_x) do xy
+        interleave(xy)
     end
-
-    linesegments!(plot, plot.attributes, plot.xy; linewidth = plot.attributes[:linewidths])
+    linesegments!(plot, plot.attributes, plot.final_x;
+                  linewidth = plot.attributes[:linewidths])
 end

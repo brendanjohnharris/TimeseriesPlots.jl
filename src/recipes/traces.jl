@@ -22,6 +22,8 @@ Can be a number in data space, or one of the following modes:
 
     get_drop_attrs(Lines, [:color])...
 end
+Makie.conversion_trait(::Type{<:Traces}) = Makie.CellGrid()
+
 function Makie.plot!(plot::Traces{<:Tuple{<:AbstractVector, <:AbstractVector,
                                           <:AbstractMatrix}})
     map!(plot.attributes, [:linecolor, :y, :Z], [:final_color]) do color, y, Z

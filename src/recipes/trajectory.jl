@@ -6,6 +6,8 @@ using LinearAlgebra
 
     get_drop_attrs(Lines, [:color])...
 end
+Makie.conversion_trait(::Type{<:Trajectory}) = Makie.PointBased()
+
 function Makie.plot!(plot::Trajectory{<:Tuple{<:Vector{<:Point}}})
     map!(plot.attributes, [:color, :x], [:parsed_color]) do color, x
         if color === :speed

@@ -1,4 +1,5 @@
 import TimeseriesTools: findmaxima, peakproms
+import TimeseriesTools: median, quantile
 
 @recipe SpectrumPlot (f, s) begin
     cycle = [:color]
@@ -18,23 +19,74 @@ import TimeseriesTools: findmaxima, peakproms
     "Whether to filter non-negative points"
     nonnegative = true
 
+    """The width or bounds of the error ribbon for multivariate spectra"""
+    width = (Base.Fix2(quantile, 0.25), Base.Fix2(quantile, 0.75))
+    """The averaging function for reducing over multivariate spectra"""
+    average = median
+
+    bandalpha = 0.5
+    bandcolor = Makie.automatic
+
     textcolor = :black
     align = (:center, :bottom)
 
-    get_drop_attrs(Lines, [:cycle])...
+    get_drop_attrs(Lines, [:cycle, :color])...
     get_drop_attrs(Scatter, attribute_names(Lines))...
     get_drop_attrs(Makie.Text,
                    [attribute_names(Scatter)..., attribute_names(Lines)..., :align])...
+    get_drop_attrs(Makie.Band,
+                   [
+                       attribute_names(Scatter)...,
+                       attribute_names(Lines)...,
+                       attribute_names(Makie.Text)...
+                   ])...
 end
+
 function Makie.plot!(plot::SpectrumPlot{<:Tuple{AbstractVector,
-                                                AbstractVector}})
-    map!(plot.attributes, [:f, :s, :nonnegative], [:x, :y]) do f, s, nn
-        if nn
-            idxs = (sign.(f) .> 0) .& (sign.(s) .> 0) # Sign for unitfuls
-            return (f[idxs], s[idxs])
+                                                AbstractArray}})
+    map!(plot.attributes, [:f, :s, :nonnegative, :average, :width],
+         [:x, :y, :yl, :yu, :doband]) do f, s, nn, average, width
+        if size(s, 2) == 1 # We are ok with units, no band
+            doband = false
         else
-            return (f, s)
+            doband = true
+            f = ustripall(f)
+            s = ustripall(s) # ! We can remove this once band! supports units
         end
+        if size(s, 2) > 1
+            if width isa Function
+                width = map(width, eachrow(s))
+            elseif width isa Tuple{Function, Function}
+                width = (map(width[1], eachrow(s)),
+                         map(width[2], eachrow(s)))
+            end
+            y = map(average, eachrow(s))
+        else
+            y = s
+        end
+        x = f
+
+        yl = yu = y .* NaN
+        if width isa Number && width > 0
+            yl = y .- width / 2
+            yu = y .+ width / 2
+        elseif width isa Tuple{<:Number, <:Number}
+            yl = y .- first(width)
+            yu = y .+ last(width)
+        elseif width isa Tuple{<:AbstractVector, <:AbstractVector}
+            yl, yu = width
+        end
+
+        if nn
+            idxs = (sign.(f) .> 0) .& (sign.(y) .> 0) # Sign for unitfuls
+        else
+            idxs = Colon()
+        end
+        x = f[idxs]
+        y = y[idxs]
+        yl = yl[idxs]
+        yu = yu[idxs]
+        return (x, y, yl, yu, doband)
     end
 
     map!(plot.attributes, [:x, :y, :peaks, :pwindow], [:p]) do x, y, peaks, pwindow
@@ -97,23 +149,37 @@ function Makie.plot!(plot::SpectrumPlot{<:Tuple{AbstractVector,
         end
         return (text,)
     end
-    text!(plot, plot.attributes, plot[:p]; text = plot[:t], color = plot[:textcolor])
-    scatter!(plot.attributes, plot.attributes[:p])
+
+    map!(plot.attributes, [:color, :bandcolor], [:parsed_bandcolor]) do color, bandcolor
+        if bandcolor === Makie.automatic
+            bandcolor = color
+        end
+        return (bandcolor,)
+    end
+    if plot.doband[]
+        band!(plot, plot.attributes, plot[:x], plot[:yl], plot[:yu];
+              color = plot[:parsed_bandcolor],
+              alpha = plot[:bandalpha])
+    end
     lines!(plot, plot.attributes, plot.attributes[:x], plot.attributes[:y])
+    scatter!(plot.attributes, plot.attributes[:p])
+    text!(plot, plot.attributes, plot[:p]; text = plot[:t], color = plot[:textcolor])
 end
 
-function Makie.convert_arguments(::Type{<:SpectrumPlot}, xy::AbstractVector{<:Point2f})
+function Makie.convert_arguments(::Type{<:SpectrumPlot}, xy::AbstractVector{<:Point2})
     (map(first, xy), map(last, xy))
 end
+
 function Makie.convert_arguments(::Type{<:SpectrumPlot}, x::UnivariateSpectrum)
     decompose(x)
 end
-
-function Makie.convert_arguments(::Type{<:SpectrumPlot}, x::UnivariateRegular)
-    (decompose ∘ spectrum)(x)
+function Makie.convert_arguments(::Type{<:SpectrumPlot}, X::MultivariateSpectrum)
+    (lookup(X, 𝑓), parent(X))
 end
 
-# * Then do specializations for spectra, f + v + matrix, multivariate spectra, etc..
+function Makie.convert_arguments(::Type{<:SpectrumPlot}, x::AbstractTimeSeries)
+    Makie.convert_arguments(SpectrumPlot, spectrum(x))
+end
 
 TimeseriesPlots.spectrumplot(args...; kwargs...) = spectrumplot(args...; kwargs...)
 TimeseriesPlots.spectrumplot!(args...; kwargs...) = spectrumplot!(args...; kwargs...)
@@ -130,14 +196,13 @@ function TimeseriesPlots.plotspectrum!(ax::Makie.Axis, s::UnivariateSpectrum;
     f, s = decompose(s)
     f = ustripall.(f) |> collect
     s = ustripall.(s) |> collect
-    idxs = (f .> 0) .& (s .> 0)
 
     ax.xscale = log10
     ax.yscale = log10
     uf == NoUnits ? (ax.xlabel = "Frequency") : (ax.xlabel = "Frequency ($uf)")
     ux == NoUnits ? (ax.ylabel = "Spectral density") :
     (ax.ylabel = "Spectral density ($ux)")
-    p = spectrumplot!(ax, f[idxs], s[idxs]; nonnegative, kwargs...)
+    p = spectrumplot!(ax, f, s; nonnegative, kwargs...)
 
     p
 end
@@ -148,48 +213,26 @@ function TimeseriesPlots.plotspectrum(s; axis = (), kwargs...)
     Makie.FigureAxisPlot(f, ax, p)
 end
 
-# """
-#     plotspectrum!(ax::Axis, x::MultivariateSpectrum)
-# Plot the given spectrum, labelling the axes, adding units if appropriate, and adding a band to show the iqr
-# """
-# function plotspectrum!(ax::Makie.Axis, x::MultivariateSpectrum;
-#                        peaks = false,
-#                        bandcolor = nothing,
-#                        percentile = 0.25, kwargs...)
-#     uf = frequnit(x)
-#     ux = unit(x)
-#     f, _, x = decompose(x)
-#     f = ustripall.(f) |> collect
-#     x = ustripall.(x) |> collect
-#     xmin = minimum(x, dims = 2) |> vec
-#     xmed = median(x, dims = 2) |> vec
-#     σₗ = mapslices(x -> quantile(x, percentile), x, dims = 2) |> vec
-#     σᵤ = mapslices(x -> quantile(x, 1 - percentile), x, dims = 2) |> vec
-#     idxs = (f .> 0) .& (xmin .> 0)
+"""
+    plotspectrum!(ax::Axis, x::MultivariateSpectrum)
+Plot the given spectrum, labelling the axes, adding units if appropriate, and adding a band to show the iqr
+"""
+function TimeseriesPlots.plotspectrum!(ax::Makie.Axis, s::MultivariateSpectrum; kwargs...)
+    uf = frequnit(s)
+    ux = unit(s)
+    f, v, s = decompose(s)
+    f = ustripall.(f) |> collect
+    s = ustripall.(s) |> collect
 
-#     dx = extrema(f[idxs])
-#     dy = extrema(σₗ[idxs])
-#     dy = (dy[1], dy[2] + (dy[2] - dy[1]) * 0.05)
-#     ax.limits = (dx, dy)
+    ax.xscale = log10
+    ax.yscale = log10
+    uf == NoUnits ? (ax.xlabel = "Frequency") : (ax.xlabel = "Frequency ($uf)")
+    ux == NoUnits ? (ax.ylabel = "Spectral density") :
+    (ax.ylabel = "Spectral density ($ux)")
+    p = spectrumplot!(ax, f, s; nonnegative = true, kwargs...)
 
-#     ax.xscale = log10
-#     ax.yscale = log10
-#     if isempty(ax.xlabel[])
-#         uf == NoUnits ? (ax.xlabel = "Frequency") : (ax.xlabel = "Frequency ($uf)")
-#     end
-#     if isempty(ax.ylabel[])
-#         ux == NoUnits ? (ax.ylabel = "Spectral density") :
-#         (ax.ylabel = "Spectral density ($ux)")
-#     end
-#     p = spectrumplot!(ax, ToolsArray(xmed[idxs], (𝑓(f[idxs]),)); peaks, kwargs...)
-#     color = isnothing(bandcolor) ? (p.color[], 0.5) : bandcolor
-#     lineattrs = [:linewidth, :alpha, :linestyle, :linecap, :joinstyle]
-#     bandattrs = [k => v for (k, v) in kwargs if !(k ∈ lineattrs)]
-#     _p = Makie.band!(ax, f[idxs], σₗ[idxs], σᵤ[idxs]; transparency = true, bandattrs...,
-#                      color)
-#     Makie.translate!(_p, 0, 0, -1.0)
-#     p
-# end
+    p
+end
 
 """
     spectrumplot!(ax::Axis, x::AbstractVector, y::AbstractVector)

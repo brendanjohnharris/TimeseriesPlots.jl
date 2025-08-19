@@ -4,7 +4,7 @@ using TimeseriesTools.Unitful
 using Makie
 using TimeseriesPlots
 import TimeseriesPlots: get_drop_attrs
-import Makie: attribute_names
+import Makie: attribute_names, convert_arguments
 
 """
     decompose(x::Union{<:AbstractTimeSeries, <:AbstractSpectrum})
@@ -14,10 +14,31 @@ function Makie.GeometryBasics.decompose(x::AbstractToolsArray)
     return map(parent, lookup(x))..., parent(x)
 end
 
-Makie.plottype(::AbstractTimeSeries) = Lines
+# function Makie.convert_arguments(::Type{<:AbstractPlot}, x::AbstractTimeSeries)
+#     decompose(x)
+# end
 
-function Makie.convert_arguments(::Type{<:AbstractPlot}, x::AbstractTimeSeries)
-    decompose(x)
+# * Define plot types (see DimensionalData/ext/DimensionalDataMakie.jl)
+const AbstractToolsVector = AbstractToolsArray{T, 1} where {T}
+const AbstractToolsMatrix = AbstractToolsArray{T, 2} where {T}
+const MayObs{T} = Union{T, Makie.Observable{<:T}}
+const MakieGrids = Union{Makie.GridPosition, Makie.GridSubposition}
+
+Makie.plottype(::D) where {D <: Union{<:AbstractToolsArray}} = _plottype(D)
+_plottype(::Type{<:MayObs{AbstractToolsVector}}) = Makie.Lines
+_plottype(::Type{<:MayObs{AbstractToolsMatrix}}) = Makie.Heatmap
+_plottype(::Type{<:MayObs{AbstractToolsArray{<:Any, 3}}}) = Makie.Volume
+for DD in (AbstractToolsVector, AbstractToolsMatrix, AbstractToolsArray{<:Any, 3})
+    p = _plottype(DD)
+    f = Makie.plotkey(p)
+    f! = Symbol(f, '!')
+    eval(quote
+             Makie.plot(dd::MayObs{$DD}; kwargs...) = Makie.$f(dd; kwargs...)
+             function Makie.plot(fig::MakieGrids, dd::MayObs{$DD}; kwargs...)
+                 Makie.$f(fig, dd; kwargs...)
+             end
+             Makie.plot!(ax, dd::MayObs{$DD}; kwargs...) = Makie.$f!(ax, dd; kwargs...)
+         end)
 end
 
 include("recipes/spectrumplot.jl")
