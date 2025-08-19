@@ -1,5 +1,5 @@
 """
-    trails(x, y; kwargs...)
+    trail(x, y; kwargs...)
 
 Plot a fading trace of points in 2D or 3D space.
 
@@ -33,7 +33,7 @@ value of `color`.
 
 To sidestep alpha normalization, explicitly pass a vector of alpha values.
 """
-@recipe Trails (x,) begin
+@recipe Trail (x,) begin
     linecolor = @inherit linecolor
     color = nothing
     colormap = @inherit colormap
@@ -42,7 +42,7 @@ To sidestep alpha normalization, explicitly pass a vector of alpha values.
 
     get_drop_attrs(Lines, [:cycle, :alpha, :color, :linecolor, :colormap])...
 end
-function Makie.plot!(plot::Trails{<:Tuple{<:Vector{<:Point}}})
+function Makie.plot!(plot::Trail{<:Tuple{<:Vector{<:Point}}})
 
     # * Parse colors
     map!(plot.attributes, [:linecolor, :color, :colormap],
@@ -131,5 +131,5 @@ function Makie.plot!(plot::Trails{<:Tuple{<:Vector{<:Point}}})
     lines!(plot, plot.attributes, plot.final_x; color = plot.final_color,
            colormap = :viridis, alpha = 1.0)
 end
-Makie.convert_arguments(::Type{<:Trails}, x, y) = (Point2f.(zip(x, y)),)
-Makie.convert_arguments(::Type{<:Trails}, x, y, z) = (Point3f.(zip(x, y, z)),)
+Makie.convert_arguments(::Type{<:Trail}, x, y) = (Point2f.(zip(x, y)),)
+Makie.convert_arguments(::Type{<:Trail}, x, y, z) = (Point3f.(zip(x, y, z)),)

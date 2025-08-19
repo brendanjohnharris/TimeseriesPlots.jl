@@ -37,4 +37,11 @@ minmax(x) = (x .- minimum(x)) ./ (maximum(x) - minimum(x))
 minmax(x::Number) = x
 include("Recipes.jl")
 
+# * Extensions
+function spectrumplot end
+function spectrumplot! end
+function plotspectrum end
+function plotspectrum! end
+export spectrumplot, spectrumplot!, plotspectrum, plotspectrum!
+
 end

@@ -1,0 +1,32 @@
+@testitem "SpectrumPlot" setup=[ToolsSetup] begin
+    x = 0.1:0.1:12
+    y = exp.(-(x .- 4) .^ 2) .+ exp.(-(x .- 8) .^ 2) .+ exp.(-(x .- 10) .^ 2)
+    y = y .- minimum(y)
+
+    f = Figure()
+    ax = Axis(f[1, 1])
+    TimeseriesPlots.spectrumplot!(ax, x, y, peaks = true, annotate = true,
+                                  offset = (0, 3))
+    display(f)
+end
+
+@testitem "SpectrumPlot TimeseriesTools" setup=[ToolsSetup] begin
+    t = 0.005:0.005:1e4
+    x = colorednoise(t, u"s") * u"V"
+    s = spectrum(x)
+    X = cat(Var(1:2), x, x .+ 1.0 * u"V", dims = 2)
+
+    f = Figure(size = (1000, 1000))
+    uc = Makie.UnitfulConversion(u"s^-1"; units_in_label = false)
+    ax = Axis(f[1, 1], dim1_conversion = uc, xscale = log10, yscale = log10,
+              xticks = logrange(1, 100, 5))
+    TimeseriesPlots.spectrumplot!(s[10:end], peaks = false, annotate = false,
+                                  nonnegative = true)
+
+    TimeseriesPlots.spectrumplot!(x, peaks = false, annotate = false,
+                                  nonnegative = true, linestyle = :dash)
+
+    display(f)
+
+    TimeseriesPlots.plotspectrum(s)
+end

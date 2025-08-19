@@ -16,23 +16,23 @@ begin # * Static plots
 
     # * Default
     ax = Axis(f[1, 1], title = "Default")
-    trails!(ax, x, y)
+    trail!(ax, x, y)
 
     # * Colormap
     ax = Axis(f[1, 2], title = "Colormap")
-    trails!(ax, x, y; color = 1:500)
+    trail!(ax, x, y; color = 1:500)
 
     # * Alpha
     ax = Axis(f[2, 1], title = "Alpha^3")
-    trails!(ax, x, y; alpha = Base.Fix2(^, 3))
+    trail!(ax, x, y; alpha = Base.Fix2(^, 3))
 
     # * Shorter trail
     ax = Axis(f[2, 2], title = "Shorter trail")
-    trails!(ax, x, y; n_points = 100)
+    trail!(ax, x, y; n_points = 100)
 
     linkaxes!(contents(f.layout))
     hidedecorations!.(contents(f.layout))
-    save("trails.png", f)
+    save("trail.png", f)
 end
 
 begin # * Animation
@@ -40,10 +40,10 @@ begin # * Animation
     r = 50
     ax = Axis(f[1, 1], limits = ((-r, r), (-r, r)))
     xy = Observable([Point2f([NaN, NaN])])
-    p = trails!(ax, xy, n_points = 100, colormap = cgrad(:turbo), color = 1:100)
+    p = trail!(ax, xy, n_points = 100, colormap = cgrad(:turbo), color = 1:100)
     hidedecorations!(ax)
 
-    record(f, "trails_animation.mp4", zip(x, y)) do _xy
+    record(f, "trail_animation.mp4", zip(x, y)) do _xy
         xy[] = push!(xy[], Point2f(_xy))
     end
 end
