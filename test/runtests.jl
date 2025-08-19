@@ -150,17 +150,24 @@ end
 end
 
 @testitem "Traces" setup=[Setup] begin
-    f = Figure(size = (300, 200))
+    f = Figure(size = (800, 200))
 
-    x = 0:0.1:5
+    x = 0:0.1:10
     y = range(0, π, length = 5)
     Z = [sin.(x .+ i) for i in y]
     Z = stack(Z)
 
-    ax = Axis(f[1, 1]; title = "Traces")
+    ax = Axis(f[1, 1]; title = "Unstacked")
     p = traces!(ax, x, y, Z)
-
     Colorbar(f[1, 2], p)
+
+    ax = Axis(f[1, 3]; title = "Even")
+    p = traces!(ax, x, y, Z; spacing = :even, offset = 1.5)
+    Colorbar(f[1, 4], p)
+
+    ax = Axis(f[1, 5]; title = "Close")
+    p = traces!(ax, x, y, Z; spacing = :close, offset = 1.5)
+    Colorbar(f[1, 6], p)
 
     save("recipes/traces.png", f)
 end
