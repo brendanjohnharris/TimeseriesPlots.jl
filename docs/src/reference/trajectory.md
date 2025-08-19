@@ -1,7 +1,6 @@
 ```@docs
-ziggurat
+trajectory
 ```
-
 
 ```@docs
 Makie.Linestyle

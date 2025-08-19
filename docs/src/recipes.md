@@ -7,37 +7,103 @@ using CairoMakie
 using CairoMakie.Makie.PlotUtils
 using CairoMakie.Colors
 using Makie
+using Foresight
 using TimeseriesPlots
 using Statistics
 import Makie.Linestyle
+import TimeseriesPlots: kinetic, kinetic!, trajectory, trajectory!
 showable(::MIME"text/plain", ::AbstractVector{C}) where {C<:Colorant} = false
 showable(::MIME"text/plain", ::PlotUtils.ContinuousColorGradient) = false
-Makie.set_theme!(TimeseriesPlots.TimeseriesPlots())
+Makie.set_theme!(Foresight.foresight())
 ```
 
 # Recipes
 
-## [ziggurat](@ref)
+## [trajectory](@ref)
 
 ```@shortdocs; canonical=false
-ziggurat
+trajectory
 ```
 
 ```@example TimeseriesPlots
-x = randn(100)
-ziggurat(x)
+f = Figure(size = (600, 600))
+
+ϕ = 0:0.1:(8π) |> reverse
+x = ϕ .* exp.(ϕ .* im)
+y = imag.(x)
+x = real.(x)
+
+# * Default
+ax = Axis(f[1, 1], title = "Default")
+trajectory!(ax, x, y)
+
+# * Speed
+ax = Axis(f[1, 2], title = "Speed")
+trajectory!(ax, x, y; color = :speed)
+
+# * Alpha
+ax = Axis(f[2, 1], title = "Time")
+trajectory!(ax, x, y; color = :time)
+
+# * 3D
+ax = Axis3(f[2, 2], title = "3D")
+trajectory!(ax, x, y, x .* y; color = :speed)
+
+f
 ```
 
-## [hill](@ref)
+## [shadows](@ref)
 
 ```@shortdocs; canonical=false
-hill
+shadows
 ```
 
 ```@example TimeseriesPlots
-x = randn(100)
-hill(x)
+ f = Figure(size = (200, 200))
+
+ϕ = 0:0.1:(8π) |> reverse
+x = ϕ .* exp.(ϕ .* im)
+y = imag.(x)
+x = real.(x)
+z = x .* y
+
+limits = (extrema(x), extrema(y), extrema(z))
+ax = Axis3(f[1, 1]; title = "Shadows", limits)
+lines!(ax, x, y, z)
+shadows!(ax, x, y, z; limits, linewidth = 0.5)
+
+f
 ```
+
+## [traces](@ref)
+
+```@shortdocs; canonical=false
+traces
+```
+
+```@example TimeseriesPlots
+f = Figure(size = (900, 300))
+
+x = 0:0.1:10
+y = range(0, π, length = 5)
+Z = [sin.(x .+ i) for i in y]
+Z = stack(Z)
+
+ax = Axis(f[1, 1]; title = "Unstacked")
+p = traces!(ax, x, y, Z)
+Colorbar(f[1, 2], p)
+
+ax = Axis(f[1, 3]; title = "Even")
+p = traces!(ax, x, y, Z; spacing = :even, offset = 1.5)
+Colorbar(f[1, 4], p)
+
+ax = Axis(f[1, 5]; title = "Close")
+p = traces!(ax, x, y, Z; spacing = :close, offset = 1.5)
+Colorbar(f[1, 6], p)
+
+f
+```
+
 
 ## [kinetic](@ref)
 
@@ -48,79 +114,4 @@ kinetic
 ```@example TimeseriesPlots
 x = -π:0.1:π
 kinetic(x, sin.(x), linewidth=:curv)
-```
-
-## [bandwidth](@ref)
-
-```@shortdocs; canonical=false
-bandwidth
-```
-
-```@example TimeseriesPlots
-x = -π:0.1:π
-bandwidth(x, sin.(x); bandwidth = sin.(x))
-```
-
-## [polarhist](@ref)
-
-```@shortdocs; canonical=false
-polarhist
-```
-
-```@example TimeseriesPlots
-polarhist(randn(1000) .* 2)
-```
-
-## [polardensity](@ref)
-
-```@shortdocs; canonical=false
-polardensity
-```
-
-```@example TimeseriesPlots
-polardensity(randn(1000) .* 2;
-                 strokewidth = 5,
-                 strokecolor = :angle,
-                 strokecolormap = cyclic,
-                 colormap=:viridis)
-```
-
-## [covellipse](@ref)
-
-```@shortdocs; canonical=false
-covellipse
-```
-
-```@example TimeseriesPlots
-xy = randn(100, 2) * [1 1; 0 0.5]
-μ = mean(xy, dims = 1)
-Σ² = cov(xy)
-
-fig, ax, plt = covellipse(μ, Σ²)
-scatter!(ax, xy)
-fig
-```
-
-## prism
-
-```@docs; canonical=false
-prism
-```
-
-```@example TimeseriesPlots
-ys = sin.((0:0.001:(π * 1.5)) .+ (0.1:0.1:(2π))')
-Σ² = cov(ys .+ randn(size(ys)) ./ 10; dims = 1)
-H = prism(Σ²; palette = [cornflowerblue, crimson]) # Generates the prism colors
-
-f = Figure()
-limits = (0, maximum(abs.(Σ²))) # You must set the limits manually
-g, ax = prismplot!(f[1, 1], H; limits, colorbarlabel = "Covariance magnitude")
-axislegend(ax,
-            [
-                PolyElement(color = (cornflowerblue, 0.7)),
-                PolyElement(color = (crimson, 0.7))
-            ],
-            ["PC 1", "PC 2"], position = :lt)
-ax.xlabel = ax.ylabel = "Variable"
-f
 ```

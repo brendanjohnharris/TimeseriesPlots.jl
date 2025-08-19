@@ -23,18 +23,6 @@ end
     display(f)
 end
 
-@testitem "Bandwidth" setup=[Setup] begin
-    x = range(-4π, 4π, length = 1000)
-    y = sinc.(x)
-    f = Figure()
-    ax = Axis(f[1, 1])
-    bandwidth!(ax, x, y; bandwidth = range(0.0001, 0.1, length = length(x)))
-
-    bandwidth!(ax, x, y .+ 0.25; bandwidth = range(0.5, 0.00, length = length(x)),
-               direction = :y, alpha = 0.5)
-    display(f)
-end
-
 @testitem "Trail 2D" setup=[Setup] begin
     f = Figure(size = (400, 400))
 
@@ -94,7 +82,7 @@ end
 
     # * Alpha
     ax = Axis(f[2, 1], title = "Time")
-    trail!(ax, x, y; color = :time)
+    trajectory!(ax, x, y; color = :time)
 
     # * 3D
     ax = Axis3(f[2, 2], title = "3D")
@@ -170,4 +158,13 @@ end
     Colorbar(f[1, 6], p)
 
     save("recipes/traces.png", f)
+end
+
+@testitem "Kinetic plot" setup=[Setup] begin
+    x = range(-4π, 4π, length = 10000)
+    y = sinc.(x)
+    f = Figure()
+    ax = Axis(f[1, 1])
+    kinetic!(ax, x, y; linewidthscale = 0.5, linewidth = :curv)
+    display(f)
 end

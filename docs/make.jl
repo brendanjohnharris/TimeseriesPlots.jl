@@ -16,24 +16,19 @@ format = DocumenterVitepress.MarkdownVitepress(;
                                                devbranch = "main",
                                                devurl = "dev")
 
+begin
+    files = readdir(joinpath(@__DIR__, "src/reference"))
+    names = split.(files, r"\.md$") .|> first .|> uppercasefirst
+    reference = names .=> Base.joinpath.(["reference"], files)
+end
+
 makedocs(;
          authors = "brendanjohnharris <brendanjohnharris@gmail.com> and contributors",
          sitename = "TimeseriesPlots",
          format,
          pages = ["Home" => "index.md",
-             "Colormaps" => "colors.md",
-             "Utilities" => "utilities.md",
-             "Layouts" => "layouts.md",
              "Recipes" => "recipes.md",
-             "Reference" => ["Hill" => "reference/hill.md",
-                 "Ziggurat" => "reference/ziggurat.md",
-                 "Bandwidth" => "reference/bandwidth.md",
-                 "Kinetic" => "reference/kinetic.md",
-                 "PolarHist" => "reference/polarhist.md",
-                 "PolarDensity" => "reference/polardensity.md",
-                 "Prism" => "reference/prism.md",
-                 "CovEllipse" => "reference/covellipse.md"
-             ]])
+             "Reference" => reference])
 
 DocumenterVitepress.deploydocs(;
                                repo = "github.com/brendanjohnharris/TimeseriesPlots.jl",

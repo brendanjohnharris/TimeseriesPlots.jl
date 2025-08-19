@@ -1,20 +1,42 @@
+
+"""
+    traces(x, y, Z; kwargs...)
+Plot the columns of `Z` over the domain `x`, colored by `y`.
+
+## Key attributes:
+
+- `linecolor` = `automatic`: Sets the color of the traces.
+
+- `spacing` = `0`: The spacing between traces.
+
+Can be a number in data space, or one of the following modes:
+    - `:even`: Even spacing equal to the greatest difference between traces.
+    - `:close`: Successive traces are spaced by the smallest difference between them.
+
+- `offset` = `1`: The offset factor (offset * spacing)
+"""
 @recipe Traces (x, y, Z) begin
     offset = 1
-    spacing = nothing
+    spacing = 0
+    linecolor = automatic
 
     get_drop_attrs(Lines, [:color])...
 end
 function Makie.plot!(plot::Traces{<:Tuple{<:AbstractVector, <:AbstractVector,
                                           <:AbstractMatrix}})
-    map!(plot.attributes, [:y, :Z], [:final_color]) do y, Z
-        cs = repeat(y', size(Z, 1))
-        cs = vcat(cs, fill(NaN, 1, size(cs, 2)))
-        return (Iterators.flatten(cs) |> collect,)
+    map!(plot.attributes, [:linecolor, :y, :Z], [:final_color]) do color, y, Z
+        if color === automatic
+            cs = repeat(y', size(Z, 1))
+            cs = vcat(cs, fill(NaN, 1, size(cs, 2)))
+            return (Iterators.flatten(cs) |> collect,)
+        else
+            return (color,)
+        end
     end
 
     map!(plot.attributes, [:Z, :spacing, :offset], [:stacked_Z]) do Z, spacing, offset
         c = zeros(size(Z, 2))
-        if !isnothing(spacing)
+        if spacing isa Symbol
             if spacing === :even
                 # * Space is the difference between the minimum of 2 and the maximum of 1
                 space = maximum([minimum(Z[:, i]) - maximum(Z[:, i - 1])
@@ -26,12 +48,13 @@ function Makie.plot!(plot::Traces{<:Tuple{<:AbstractVector, <:AbstractVector,
                 end
                 c[i] = c[i - 1] + space * offset
             end
+        else
+            c .= spacing .* offset
         end
         stacked_Z = Z .+ c'
         return (stacked_Z,)
     end
 
-    # * Parse colors
     map!(plot.attributes, [:x, :stacked_Z], [:final_x]) do x, Z
         xys = map(eachcol(Z)) do _z
             xy = Point2f.(zip(x, _z))
@@ -40,16 +63,6 @@ function Makie.plot!(plot::Traces{<:Tuple{<:AbstractVector, <:AbstractVector,
         end
         return (vcat(xys...),)
     end
-    # map!(plot.attributes, [:color, :colormap],
-    #      [:parsed_color, :parsed_colormap]) do color, colormap
-    #     if color isa AbstractVector{<:Number} # One color for each line
-    #         colormap = cgrad(colormap)
-    #     else
-    #         parsed_color = color
-    #     end
 
-    #     return parsed_color, parsed_colormap # To be sampled after calculating points
-    # end
-    # Main.@infiltrate
-    lines!(plot, plot.attributes, plot.final_x, color = plot.final_color)
+    lines!(plot, plot.attributes, plot.final_x; color = plot.final_color)
 end

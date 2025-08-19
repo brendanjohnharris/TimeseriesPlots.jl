@@ -86,5 +86,4 @@ function Makie.plot!(plot::Kinetic{<:Tuple{AbstractVector{<:Real}, AbstractVecto
     end
 
     linesegments!(plot, plot.attributes, plot.xy; linewidth = plot.attributes[:linewidths])
-    # Rework this to use bandwidth plot...
 end
