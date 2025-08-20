@@ -114,30 +114,29 @@ function Makie.plot!(plot::SpectrumPlot{<:Tuple{AbstractVector,
 
     map!(plot.attributes, [:p, :annotate, :textformat], [:t]) do p, annotate, textformat
         if annotate === false || isempty(p)
-            return ([],)
+            return (fill("", length(p)),)
         end
         if annotate === true
-            annotate = (identity, nothing)
+            annotate = (identity,)
         end
         if annotate isa AbstractVector
             annotate = Tuple(annotate)
         end
         if !(annotate isa Tuple)
-            annotate = (annotate, nothing)
+            annotate = (annotate,)
         end
         if annotate isa Tuple
             annotate = textformat(annotate)
             text = map(p) do xy
                 txt = map(annotate, xy) do a, x
                     if a isa Nothing
-                        text = nothing
+                        text = ""
                     elseif a isa String || a isa Symbol
                         text = "$x $a"
                     else # a is a function probably
                         text = x |> a |> string
                     end
                 end
-                txt = filter(!isnothing, txt)
             end
             text = map(text) do t
                 if length(t) == 1
@@ -149,7 +148,6 @@ function Makie.plot!(plot::SpectrumPlot{<:Tuple{AbstractVector,
         end
         return (text,)
     end
-
     map!(plot.attributes, [:color, :bandcolor], [:parsed_bandcolor]) do color, bandcolor
         if bandcolor === Makie.automatic
             bandcolor = color
@@ -195,6 +193,7 @@ function label_spectrum!(ax, f, s)
     setlims = ((minimum(f[idxs]), maximum(f[idxs])),
                (minimum(ms[idxs]), nothing))
 
+    Main.@infiltrate
     xax = first(ax.limits[])
     yax = last(ax.limits[])
     if isnothing(xax) || isnothing(yax)
@@ -204,7 +203,7 @@ function label_spectrum!(ax, f, s)
     xax = first(ax.limits[])
     yax = last(ax.limits[])
     xax = first(xax)
-    yax = last(yax)
+    yax = first(yax)
     if isnothing(xax) || isnothing(yax) || xax <= 0 || yax <= 0
         ax.limits = setlims
     end
