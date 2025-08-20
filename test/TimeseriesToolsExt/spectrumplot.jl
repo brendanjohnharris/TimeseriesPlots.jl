@@ -5,7 +5,7 @@
 
 #     f = Figure()
 #     ax = Axis(f[1, 1])
-#     TimeseriesPlots.spectrumplot!(ax, x, y, peaks = true, annotate = true,
+#     TimeseriesMakie.spectrumplot!(ax, x, y, peaks = true, annotate = true,
 #                                   offset = (0, 3))
 #     display(f)
 # end
@@ -19,10 +19,10 @@
 #     uc = Makie.UnitfulConversion(u"s^-1"; units_in_label = false)
 #     ax = Axis(f[1, 1], dim1_conversion = uc, xscale = log10, yscale = log10,
 #               xticks = logrange(1, 100, 5))
-#     TimeseriesPlots.spectrumplot!(s[10:end], peaks = false, annotate = false,
+#     TimeseriesMakie.spectrumplot!(s[10:end], peaks = false, annotate = false,
 #                                   nonnegative = true)
 
-#     TimeseriesPlots.spectrumplot!(x, peaks = false, annotate = false,
+#     TimeseriesMakie.spectrumplot!(x, peaks = false, annotate = false,
 #                                   nonnegative = true, linestyle = :dash)
 
 #     display(f)
@@ -34,8 +34,8 @@
 #     f = Figure(size = (1000, 1000))
 #     ax = Axis(f[1, 1], xscale = log10, yscale = log10,
 #               xticks = logrange(1, 100, 5))
-#     TimeseriesPlots.spectrumplot!(ax, S)
+#     TimeseriesMakie.spectrumplot!(ax, S)
 #     display(f)
 
-#     TimeseriesPlots.plotspectrum(S)
+#     TimeseriesMakie.plotspectrum(S)
 # end

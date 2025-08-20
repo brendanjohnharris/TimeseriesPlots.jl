@@ -9,7 +9,7 @@ using TestItemRunner
     using CairoMakie.Makie.PlotUtils
     using Statistics
     using LinearAlgebra
-    using TimeseriesPlots
+    using TimeseriesMakie
     using CairoMakie.Makie.Distributions
     using LaTeXStrings
 end

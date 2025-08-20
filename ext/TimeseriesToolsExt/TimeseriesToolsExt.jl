@@ -2,8 +2,8 @@ module TimeseriesToolsExt
 using TimeseriesTools
 using TimeseriesTools.Unitful
 using Makie
-using TimeseriesPlots
-import TimeseriesPlots: get_drop_attrs
+using TimeseriesMakie
+import TimeseriesMakie: get_drop_attrs
 import Makie: attribute_names, convert_arguments
 
 """
@@ -45,11 +45,11 @@ end
 function Makie.convert_arguments(::Type{<:AbstractPlot}, x::AbstractToolsVector{<:Point})
     parent(x) |> tuple
 end
-function Makie.convert_arguments(P::Type{TimeseriesPlots.Traces},
+function Makie.convert_arguments(P::Type{TimeseriesMakie.Traces},
                                  A::DimensionalData.AbstractDimMatrix)
     return decompose(A)
 end
-function Makie.convert_arguments(P::Type{TimeseriesPlots.Shadows}, A::AbstractMatrix)
+function Makie.convert_arguments(P::Type{TimeseriesMakie.Shadows}, A::AbstractMatrix)
     if size(A, 2) != 3
         throw(ArgumentError("Shadows requires a 2D matrix with 3 columns, got $(size(A))"))
     end

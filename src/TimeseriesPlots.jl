@@ -1,4 +1,4 @@
-module TimeseriesPlots
+module TimeseriesMakie
 
 using Makie
 using Random

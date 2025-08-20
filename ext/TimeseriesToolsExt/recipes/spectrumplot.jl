@@ -179,8 +179,8 @@ function Makie.convert_arguments(::Type{<:SpectrumPlot}, x::AbstractTimeSeries)
     Makie.convert_arguments(SpectrumPlot, spectrum(x))
 end
 
-TimeseriesPlots.spectrumplot(args...; kwargs...) = spectrumplot(args...; kwargs...)
-TimeseriesPlots.spectrumplot!(args...; kwargs...) = spectrumplot!(args...; kwargs...)
+TimeseriesMakie.spectrumplot(args...; kwargs...) = spectrumplot(args...; kwargs...)
+TimeseriesMakie.spectrumplot!(args...; kwargs...) = spectrumplot!(args...; kwargs...)
 
 # * plotspectrum; modifies axis, not a recipe
 function label_spectrum!(ax, f, s)
@@ -217,7 +217,7 @@ end
     plotspectrum!(ax::Axis, x::UnivariateSpectrum)
 Plot the given spectrum, labelling the axes, adding units if appropriate, and other niceties.
 """
-function TimeseriesPlots.plotspectrum!(ax::Makie.Axis, s::UnivariateSpectrum;
+function TimeseriesMakie.plotspectrum!(ax::Makie.Axis, s::UnivariateSpectrum;
                                        nonnegative = true, kwargs...)
     f, s = decompose(s)
     f = ustripall.(f) |> collect
@@ -226,10 +226,10 @@ function TimeseriesPlots.plotspectrum!(ax::Makie.Axis, s::UnivariateSpectrum;
     label_spectrum!(ax, f, s)
     spectrumplot!(ax, f, s; nonnegative, kwargs...)
 end
-function TimeseriesPlots.plotspectrum(s; axis = (), kwargs...)
+function TimeseriesMakie.plotspectrum(s; axis = (), kwargs...)
     f = Figure()
     ax = Axis(f[1, 1]; xscale = log10, yscale = log10, axis...)
-    p = TimeseriesPlots.plotspectrum!(ax, s; kwargs...)
+    p = TimeseriesMakie.plotspectrum!(ax, s; kwargs...)
     Makie.FigureAxisPlot(f, ax, p)
 end
 
@@ -237,7 +237,7 @@ end
     plotspectrum!(ax::Axis, x::MultivariateSpectrum)
 Plot the given spectrum, labelling the axes, adding units if appropriate, and adding a band to show the iqr
 """
-function TimeseriesPlots.plotspectrum!(ax::Makie.Axis, s::MultivariateSpectrum; kwargs...)
+function TimeseriesMakie.plotspectrum!(ax::Makie.Axis, s::MultivariateSpectrum; kwargs...)
     f, v, s = decompose(s)
     f = ustripall.(f) |> collect
     s = ustripall.(s) |> collect

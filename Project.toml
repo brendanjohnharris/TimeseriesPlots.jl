@@ -1,4 +1,4 @@
-name = "TimeseriesPlots"
+name = "TimeseriesMakie"
 uuid = "5e3e9a77-7bbf-480c-931c-0802e2453f5a"
 authors = ["brendanjohnharris <brendanjohnharris@gmail.com>"]
 version = "0.1.0"

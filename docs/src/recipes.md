@@ -1,17 +1,17 @@
 ```@meta
-CurrentModule = TimeseriesPlots
+CurrentModule = TimeseriesMakie
 ```
 
-```@setup TimeseriesPlots
+```@setup TimeseriesMakie
 using CairoMakie
 using CairoMakie.Makie.PlotUtils
 using CairoMakie.Colors
 using Makie
 using Foresight
-using TimeseriesPlots
+using TimeseriesMakie
 using Statistics
 import Makie.Linestyle
-import TimeseriesPlots: kinetic, kinetic!, trajectory, trajectory!
+import TimeseriesMakie: kinetic, kinetic!, trajectory, trajectory!
 showable(::MIME"text/plain", ::AbstractVector{C}) where {C<:Colorant} = false
 showable(::MIME"text/plain", ::PlotUtils.ContinuousColorGradient) = false
 Makie.set_theme!(Foresight.foresight())
@@ -25,7 +25,7 @@ Makie.set_theme!(Foresight.foresight())
 trajectory
 ```
 
-```@example TimeseriesPlots
+```@example TimeseriesMakie
 f = Figure(size = (600, 600))
 
 ϕ = 0:0.1:(8π) |> reverse
@@ -58,7 +58,7 @@ f
 shadows
 ```
 
-```@example TimeseriesPlots
+```@example TimeseriesMakie
  f = Figure(size = (500, 500))
 
 ϕ = 0:0.1:(8π) |> reverse
@@ -81,7 +81,7 @@ f
 traces
 ```
 
-```@example TimeseriesPlots
+```@example TimeseriesMakie
 f = Figure(size = (900, 300))
 
 x = 0:0.1:10
@@ -111,7 +111,7 @@ f
 kinetic
 ```
 
-```@example TimeseriesPlots
+```@example TimeseriesMakie
 x = -π:0.1:π
 kinetic(x, sin.(x), linewidth=:curv)
 ```

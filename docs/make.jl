@@ -1,7 +1,7 @@
 using CairoMakie
 using Makie
 import Makie.Linestyle
-using TimeseriesPlots
+using TimeseriesMakie
 using Documenter
 using Documenter: Documenter
 using Documenter.MarkdownAST
@@ -12,7 +12,7 @@ using Markdown
 include("docs_blocks.jl")
 
 format = DocumenterVitepress.MarkdownVitepress(;
-                                               repo = "github.com/brendanjohnharris/TimeseriesPlots.jl",
+                                               repo = "github.com/brendanjohnharris/TimeseriesMakie.jl",
                                                devbranch = "main",
                                                devurl = "dev")
 
@@ -24,14 +24,14 @@ end
 
 makedocs(;
          authors = "brendanjohnharris <brendanjohnharris@gmail.com> and contributors",
-         sitename = "TimeseriesPlots",
+         sitename = "TimeseriesMakie",
          format,
          pages = ["Home" => "index.md",
              "Recipes" => "recipes.md",
              "Reference" => reference])
 
 DocumenterVitepress.deploydocs(;
-                               repo = "github.com/brendanjohnharris/TimeseriesPlots.jl",
+                               repo = "github.com/brendanjohnharris/TimeseriesMakie.jl",
                                target = "build", # this is where Vitepress stores its output
                                branch = "gh-pages",
                                devbranch = "main",

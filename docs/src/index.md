@@ -1,7 +1,7 @@
 ```@meta
-CurrentModule = TimeseriesPlots
+CurrentModule = TimeseriesMakie
 ```
 
-# TimeseriesPlots
+# TimeseriesMakie
 
-Documentation for [TimeseriesPlots](https://github.com/brendanjohnharris/TimeseriesPlots.jl).
+Documentation for [TimeseriesMakie](https://github.com/brendanjohnharris/TimeseriesMakie.jl).
