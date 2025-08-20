@@ -193,7 +193,6 @@ function label_spectrum!(ax, f, s)
     setlims = ((minimum(f[idxs]), maximum(f[idxs])),
                (minimum(ms[idxs]), nothing))
 
-    Main.@infiltrate
     xax = first(ax.limits[])
     yax = last(ax.limits[])
     if isnothing(xax) || isnothing(yax)
