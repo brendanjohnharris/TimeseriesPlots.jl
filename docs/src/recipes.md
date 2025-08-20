@@ -59,7 +59,7 @@ shadows
 ```
 
 ```@example TimeseriesPlots
- f = Figure(size = (200, 200))
+ f = Figure(size = (500, 500))
 
 ϕ = 0:0.1:(8π) |> reverse
 x = ϕ .* exp.(ϕ .* im)
