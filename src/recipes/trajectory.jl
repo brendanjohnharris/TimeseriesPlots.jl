@@ -8,7 +8,7 @@ using LinearAlgebra
 end
 Makie.conversion_trait(::Type{<:Trajectory}) = Makie.PointBased()
 
-function Makie.plot!(plot::Trajectory{<:Tuple{<:Vector{<:Point}}})
+function Makie.plot!(plot::Trajectory{<:Tuple{<:AbstractVector{<:Point}}})
     map!(plot.attributes, [:color, :x], [:parsed_color]) do color, x
         if color === :speed
             if length(x) > 1
@@ -26,5 +26,5 @@ function Makie.plot!(plot::Trajectory{<:Tuple{<:Vector{<:Point}}})
     end
     lines!(plot, plot.attributes, plot.x; color = plot.parsed_color)
 end
-Makie.convert_arguments(::Type{<:Trajectory}, x, y) = (Point2f.(zip(x, y)),)
-Makie.convert_arguments(::Type{<:Trajectory}, x, y, z) = (Point3f.(zip(x, y, z)),)
+Makie.convert_arguments(::Type{<:Trajectory}, x, y) = (Point2.(zip(x, y)),)
+Makie.convert_arguments(::Type{<:Trajectory}, x, y, z) = (Point3.(zip(x, y, z)),)

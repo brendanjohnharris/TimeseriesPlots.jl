@@ -185,26 +185,48 @@ TimeseriesPlots.spectrumplot(args...; kwargs...) = spectrumplot(args...; kwargs.
 TimeseriesPlots.spectrumplot!(args...; kwargs...) = spectrumplot!(args...; kwargs...)
 
 # * plotspectrum; modifies axis, not a recipe
-"""
-    plotspectrum!(ax::Axis, x::UnivariateSpectrum)
-Plot the given spectrum, labelling the axes, adding units if appropriate, and other niceties.
-"""
-function TimeseriesPlots.plotspectrum!(ax::Makie.Axis, s::UnivariateSpectrum;
-                                       nonnegative = true, kwargs...)
-    uf = frequnit(s)
-    ux = unit(s)
-    f, s = decompose(s)
-    f = ustripall.(f) |> collect
-    s = ustripall.(s) |> collect
+function label_spectrum!(ax, f, s)
+    uf = unit(eltype(f))
+    ux = unit(eltype(s))
+    if s isa AbstractMatrix
+        ms = map(Base.Fix2(quantile, 0.1), eachrow(s))
+    end
+    idxs = (f .> 0) .& (ms .> 0)
+    setlims = ((minimum(f[idxs]), maximum(f[idxs])),
+               (minimum(ms[idxs]), nothing))
+
+    xax = first(ax.limits[])
+    yax = last(ax.limits[])
+    if isnothing(xax) || isnothing(yax)
+        ax.limits = setlims
+    end
+
+    xax = first(ax.limits[])
+    yax = last(ax.limits[])
+    xax = first(xax)
+    yax = last(yax)
+    if isnothing(xax) || isnothing(yax) || xax <= 0 || yax <= 0
+        ax.limits = setlims
+    end
 
     ax.xscale = log10
     ax.yscale = log10
     uf == NoUnits ? (ax.xlabel = "Frequency") : (ax.xlabel = "Frequency ($uf)")
     ux == NoUnits ? (ax.ylabel = "Spectral density") :
     (ax.ylabel = "Spectral density ($ux)")
-    p = spectrumplot!(ax, f, s; nonnegative, kwargs...)
+end
+"""
+    plotspectrum!(ax::Axis, x::UnivariateSpectrum)
+Plot the given spectrum, labelling the axes, adding units if appropriate, and other niceties.
+"""
+function TimeseriesPlots.plotspectrum!(ax::Makie.Axis, s::UnivariateSpectrum;
+                                       nonnegative = true, kwargs...)
+    f, s = decompose(s)
+    f = ustripall.(f) |> collect
+    s = ustripall.(s) |> collect
 
-    p
+    label_spectrum!(ax, f, s)
+    spectrumplot!(ax, f, s; nonnegative, kwargs...)
 end
 function TimeseriesPlots.plotspectrum(s; axis = (), kwargs...)
     f = Figure()
@@ -218,20 +240,12 @@ end
 Plot the given spectrum, labelling the axes, adding units if appropriate, and adding a band to show the iqr
 """
 function TimeseriesPlots.plotspectrum!(ax::Makie.Axis, s::MultivariateSpectrum; kwargs...)
-    uf = frequnit(s)
-    ux = unit(s)
     f, v, s = decompose(s)
     f = ustripall.(f) |> collect
     s = ustripall.(s) |> collect
 
-    ax.xscale = log10
-    ax.yscale = log10
-    uf == NoUnits ? (ax.xlabel = "Frequency") : (ax.xlabel = "Frequency ($uf)")
-    ux == NoUnits ? (ax.ylabel = "Spectral density") :
-    (ax.ylabel = "Spectral density ($ux)")
-    p = spectrumplot!(ax, f, s; nonnegative = true, kwargs...)
-
-    p
+    label_spectrum!(ax, f, s)
+    spectrumplot!(ax, f, s; nonnegative = true, kwargs...)
 end
 
 """

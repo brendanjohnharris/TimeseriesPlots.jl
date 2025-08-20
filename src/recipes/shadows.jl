@@ -12,12 +12,16 @@
 end
 Makie.conversion_trait(::Type{<:Shadows}) = Makie.PointBased()
 
-function Makie.plot!(plot::Shadows{<:Tuple{<:Vector{<:Point3}}})
+function Makie.plot!(plot::Shadows{<:Tuple{<:AbstractVector{<:Point3}}})
     map!(plot.attributes, [:x, :mode, :swapshadows, :limits],
          [:xs, :ys, :zs]) do x, mode, swapshadows, limits
         _x = map(Base.Fix2(getindex, 1), x)
         _y = map(Base.Fix2(getindex, 2), x)
         _z = map(Base.Fix2(getindex, 3), x)
+
+        if limits === automatic
+            limits = (extrema(_x), extrema(_y), extrema(_z))
+        end
 
         N = length(x)
         if swapshadows === false

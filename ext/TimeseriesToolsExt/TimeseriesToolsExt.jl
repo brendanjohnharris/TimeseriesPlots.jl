@@ -41,6 +41,21 @@ for DD in (AbstractToolsVector, AbstractToolsMatrix, AbstractToolsArray{<:Any, 3
          end)
 end
 
+# * Conversions
+function Makie.convert_arguments(::Type{<:AbstractPlot}, x::AbstractToolsVector{<:Point})
+    parent(x) |> tuple
+end
+function Makie.convert_arguments(P::Type{TimeseriesPlots.Traces},
+                                 A::DimensionalData.AbstractDimMatrix)
+    return decompose(A)
+end
+function Makie.convert_arguments(P::Type{TimeseriesPlots.Shadows}, A::AbstractMatrix)
+    if size(A, 2) != 3
+        throw(ArgumentError("Shadows requires a 2D matrix with 3 columns, got $(size(A))"))
+    end
+    return eachcol(A)
+end
+
 include("recipes/spectrumplot.jl")
 
 end

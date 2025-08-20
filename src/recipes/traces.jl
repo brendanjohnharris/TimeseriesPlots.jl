@@ -1,3 +1,4 @@
+using Makie.Unitful
 
 """
     traces(x, y, Z; kwargs...)
@@ -22,7 +23,6 @@ Can be a number in data space, or one of the following modes:
 
     get_drop_attrs(Lines, [:color])...
 end
-Makie.conversion_trait(::Type{<:Traces}) = Makie.CellGrid()
 
 function Makie.plot!(plot::Traces{<:Tuple{<:AbstractVector, <:AbstractVector,
                                           <:AbstractMatrix}})
@@ -37,7 +37,10 @@ function Makie.plot!(plot::Traces{<:Tuple{<:AbstractVector, <:AbstractVector,
     end
 
     map!(plot.attributes, [:Z, :spacing, :offset], [:stacked_Z]) do Z, spacing, offset
-        c = zeros(size(Z, 2))
+        if unit(spacing) === NoUnits
+            spacing = spacing * unit(eltype(Z))
+        end
+        c = zeros(size(Z, 2)) .* unit(eltype(Z))
         if spacing isa Symbol
             if spacing === :even
                 # * Space is the difference between the minimum of 2 and the maximum of 1
@@ -59,8 +62,8 @@ function Makie.plot!(plot::Traces{<:Tuple{<:AbstractVector, <:AbstractVector,
 
     map!(plot.attributes, [:x, :stacked_Z], [:final_x]) do x, Z
         xys = map(eachcol(Z)) do _z
-            xy = Point2f.(zip(x, _z))
-            push!(xy, Point2f(NaN, NaN))
+            xy = Point2.(zip(x, _z))
+            push!(xy, Point2([NaN, NaN] .* unit(eltype(Z))))
             return xy
         end
         return (vcat(xys...),)

@@ -44,7 +44,7 @@ To sidestep alpha normalization, explicitly pass a vector of alpha values.
 end
 Makie.conversion_trait(::Type{<:Trail}) = Makie.PointBased()
 
-function Makie.plot!(plot::Trail{<:Tuple{<:Vector{<:Point}}})
+function Makie.plot!(plot::Trail{<:Tuple{<:AbstractVector{<:Point}}})
 
     # * Parse colors
     map!(plot.attributes, [:linecolor, :color, :colormap],
@@ -133,5 +133,5 @@ function Makie.plot!(plot::Trail{<:Tuple{<:Vector{<:Point}}})
     lines!(plot, plot.attributes, plot.final_x; color = plot.final_color,
            colormap = :viridis, alpha = 1.0)
 end
-Makie.convert_arguments(::Type{<:Trail}, x, y) = (Point2f.(zip(x, y)),)
-Makie.convert_arguments(::Type{<:Trail}, x, y, z) = (Point3f.(zip(x, y, z)),)
+Makie.convert_arguments(::Type{<:Trail}, x, y) = (Point2.(zip(x, y)),)
+Makie.convert_arguments(::Type{<:Trail}, x, y, z) = (Point3.(zip(x, y, z)),)
