@@ -21,6 +21,7 @@ end
     ax = Axis(f[1, 1])
     kinetic!(ax, x, y; linewidthscale = 0.5, linewidth = :curv)
     display(f)
+    save("recipes/kinetic.png", f)
 end
 
 @testitem "Trail 2D" setup=[Setup] begin
@@ -106,7 +107,7 @@ end
 end
 
 @testitem "Shadows" setup=[Setup] begin
-    f = Figure(size = (200, 200))
+    f = Figure(size = (400, 400))
 
     ϕ = 0:0.1:(8π) |> reverse
     x = ϕ .* exp.(ϕ .* im)
@@ -118,7 +119,7 @@ end
     limits = (extrema(x), extrema(y), extrema(z))
     ax = Axis3(f[1, 1]; title = "Shadows", limits)
     lines!(ax, x, y, z)
-    shadows!(ax, x, y, z; limits, linewidth = 0.5)
+    shadows!(ax, x, y, z; limits, linewidth = 0.5, color = :gray)
 
     hidedecorations!.(contents(f.layout))
     save("recipes/shadows.png", f)
