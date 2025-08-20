@@ -37,9 +37,6 @@ function Makie.plot!(plot::Traces{<:Tuple{<:AbstractVector, <:AbstractVector,
     end
 
     map!(plot.attributes, [:Z, :spacing, :offset], [:stacked_Z]) do Z, spacing, offset
-        if unit(spacing) === NoUnits
-            spacing = spacing * unit(eltype(Z))
-        end
         c = zeros(size(Z, 2)) .* unit(eltype(Z))
         if spacing isa Symbol
             if spacing === :even
@@ -54,6 +51,9 @@ function Makie.plot!(plot::Traces{<:Tuple{<:AbstractVector, <:AbstractVector,
                 c[i] = c[i - 1] + space * offset
             end
         else
+            if unit(spacing) === NoUnits
+                spacing = spacing * unit(eltype(Z))
+            end
             c .= spacing .* offset
         end
         stacked_Z = Z .+ c'
