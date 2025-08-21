@@ -19,7 +19,7 @@ end
     y = sinc.(x)
     f = Figure()
     ax = Axis(f[1, 1])
-    kinetic!(ax, x, y; linewidthscale = 0.5, linewidth = :curv)
+    kinetic!(ax, x, y; linewidthscale = 0.5, linewidth = :curv, linecap = :round)
     display(f)
     save("recipes/kinetic.png", f)
 end

@@ -113,5 +113,5 @@ kinetic
 
 ```@example TimeseriesMakie
 x = -π:0.1:π
-kinetic(x, sin.(x), linewidth=:curv)
+kinetic(x, sin.(x))
 ```

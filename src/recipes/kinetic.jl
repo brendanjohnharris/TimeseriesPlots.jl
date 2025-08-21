@@ -25,7 +25,7 @@ Sets the algorithm for determining the line width.
     linewidth = :curv
     linewidthscale = 1
 
-    get_drop_attrs(Density, [:cycle, :color, :linewidth])...
+    get_drop_attrs(Lines, [:cycle, :color, :linewidth])...
 end
 Makie.conversion_trait(::Type{<:Kinetic}) = Makie.PointBased()
 
