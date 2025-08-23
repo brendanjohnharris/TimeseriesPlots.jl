@@ -1,41 +1,41 @@
-# @testitem "SpectrumPlot" setup=[ToolsSetup] begin
-#     x = 0.1:0.1:12
-#     y = exp.(-(x .- 4) .^ 2) .+ exp.(-(x .- 8) .^ 2) .+ exp.(-(x .- 10) .^ 2)
-#     y = y .- minimum(y)
+@testitem "SpectrumPlot" setup=[ToolsSetup] begin
+    x = 0.1:0.1:12
+    y = exp.(-(x .- 4) .^ 2) .+ exp.(-(x .- 8) .^ 2) .+ exp.(-(x .- 10) .^ 2)
+    y = y .- minimum(y)
 
-#     f = Figure()
-#     ax = Axis(f[1, 1])
-#     TimeseriesMakie.spectrumplot!(ax, x, y, peaks = true, annotate = true,
-#                                   offset = (0, 3))
-#     display(f)
-# end
+    f = Figure()
+    ax = Axis(f[1, 1])
+    TimeseriesMakie.spectrumplot!(ax, x, y, peaks = true, annotate = true,
+                                  offset = (0, 3))
+    display(f)
+end
 
-# @testitem "SpectrumPlot TimeseriesTools" setup=[ToolsSetup] begin
-#     t = 0.005:0.005:1e4
-#     x = colorednoise(t, u"s") * u"V"
-#     s = spectrum(x)
+@testitem "SpectrumPlot TimeseriesTools" setup=[ToolsSetup] begin
+    t = 0.005:0.005:1e4
+    x = colorednoise(t, u"s") * u"V"
+    s = spectrum(x)
 
-#     f = Figure(size = (1000, 1000))
-#     uc = Makie.UnitfulConversion(u"s^-1"; units_in_label = false)
-#     ax = Axis(f[1, 1], dim1_conversion = uc, xscale = log10, yscale = log10,
-#               xticks = logrange(1, 100, 5))
-#     TimeseriesMakie.spectrumplot!(s[10:end], peaks = false, annotate = false,
-#                                   nonnegative = true)
+    f = Figure(size = (1000, 1000))
+    uc = Makie.UnitfulConversion(u"s^-1"; units_in_label = false)
+    ax = Axis(f[1, 1], dim1_conversion = uc, xscale = log10, yscale = log10,
+              xticks = logrange(1, 100, 5))
+    TimeseriesMakie.spectrumplot!(s[10:end], peaks = false, annotate = false,
+                                  nonnegative = true)
 
-#     TimeseriesMakie.spectrumplot!(x, peaks = false, annotate = false,
-#                                   nonnegative = true, linestyle = :dash)
+    TimeseriesMakie.spectrumplot!(x, peaks = false, annotate = false,
+                                  nonnegative = true, linestyle = :dash)
 
-#     display(f)
+    display(f)
 
-#     X = ToolsArray([colorednoise(t[1:10:end], u"s") .* i * u"V" for i in 1:10],
-#                    Var(1:10)) |>
-#         stack
-#     S = spectrum(X)
-#     f = Figure(size = (1000, 1000))
-#     ax = Axis(f[1, 1], xscale = log10, yscale = log10,
-#               xticks = logrange(1, 100, 5))
-#     TimeseriesMakie.spectrumplot!(ax, S)
-#     display(f)
+    X = ToolsArray([colorednoise(t[1:10:end], u"s") .* i * u"V" for i in 1:10],
+                   Var(1:10)) |>
+        stack
+    S = spectrum(X)
+    f = Figure(size = (1000, 1000))
+    ax = Axis(f[1, 1], xscale = log10, yscale = log10,
+              xticks = logrange(1, 100, 5))
+    TimeseriesMakie.spectrumplot!(ax, S)
+    display(f)
 
-#     TimeseriesMakie.plotspectrum(S)
-# end
+    TimeseriesMakie.plotspectrum(S)
+end

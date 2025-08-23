@@ -5,6 +5,7 @@ using Makie
 using TimeseriesMakie
 import TimeseriesMakie: get_drop_attrs
 import Makie: attribute_names, convert_arguments
+import TimeseriesTools: AbstractToolsArray
 
 """
     decompose(x::Union{<:AbstractTimeSeries, <:AbstractSpectrum})

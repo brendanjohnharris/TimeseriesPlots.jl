@@ -24,8 +24,9 @@ Sets the algorithm for determining the line width.
     color = @inherit linecolor
     linewidth = :curv
     linewidthscale = 1
+    linecap = :round
 
-    get_drop_attrs(Lines, [:cycle, :color, :linewidth])...
+    get_drop_attrs(Lines, [:cycle, :color, :linewidth, :linecap])...
 end
 Makie.conversion_trait(::Type{<:Kinetic}) = Makie.PointBased()
 
