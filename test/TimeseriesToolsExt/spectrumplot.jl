@@ -33,8 +33,8 @@ end
         stack
     S = spectrum(X)
     f = Figure(size = (1000, 1000))
-    ax = Axis(f[1, 1], xscale = log10, yscale = log10,
-              xticks = logrange(1, 100, 5))
+    ax = Axis(f[1, 1]; xscale = log10, yscale = log10,
+              xticks)
     TimeseriesMakie.spectrumplot!(ax, S)
     display(f)
 
