@@ -175,7 +175,7 @@ function Makie.convert_arguments(::Type{<:SpectrumPlot}, X::MultivariateSpectrum
     (lookup(X, 𝑓), parent(X))
 end
 
-function Makie.convert_arguments(::Type{<:SpectrumPlot}, x::AbstractTimeSeries)
+function Makie.convert_arguments(::Type{<:SpectrumPlot}, x::AbstractTimeseries)
     Makie.convert_arguments(SpectrumPlot, spectrum(x))
 end
 
@@ -259,7 +259,7 @@ end
 # end
 
 # """
-#     plotLFPspectra(X::UnivariateTimeSeries; slope=nothing, position=Point2f([5, 1e-5]), fs=nothing, N=1000, slopecolor=:crimson, kwargs...)
+#     plotLFPspectra(X::UnivariateTimeseries; slope=nothing, position=Point2f([5, 1e-5]), fs=nothing, N=1000, slopecolor=:crimson, kwargs...)
 
 # Create a line frequency power (LFP) spectra plot for the given time series `X`.
 
@@ -271,7 +271,7 @@ end
 # - `slopecolor`: The color of the slope line. Default is `:crimson`.
 # - `kwargs...`: Additional keyword arguments to be passed to the plot.
 # """
-# function plotLFPspectra(X::UnivariateTimeSeries; slope=nothing, position=Point2f([5, 1e-5]), fs=nothing, N=1000, slopecolor=:crimson, kwargs...)
+# function plotLFPspectra(X::UnivariateTimeseries; slope=nothing, position=Point2f([5, 1e-5]), fs=nothing, N=1000, slopecolor=:crimson, kwargs...)
 #     times = collect(dims(X, 𝑡))
 #     if isnothing(fs)
 #         Δt = times[2] - times[1]

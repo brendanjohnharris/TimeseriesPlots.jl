@@ -8,14 +8,14 @@ import Makie: attribute_names, convert_arguments
 import TimeseriesTools: AbstractToolsArray
 
 """
-    decompose(x::Union{<:AbstractTimeSeries, <:AbstractSpectrum})
+    decompose(x::Union{<:AbstractTimeseries, <:AbstractSpectrum})
 Convert a time series or spectrum to a tuple of the dimensions and the data (as `Array`s).
 """
 function Makie.GeometryBasics.decompose(x::AbstractToolsArray)
     return map(parent, lookup(x))..., parent(x)
 end
 
-# function Makie.convert_arguments(::Type{<:AbstractPlot}, x::AbstractTimeSeries)
+# function Makie.convert_arguments(::Type{<:AbstractPlot}, x::AbstractTimeseries)
 #     decompose(x)
 # end
 
