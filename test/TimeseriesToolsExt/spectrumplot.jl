@@ -39,3 +39,15 @@ end
 
     TimeseriesMakie.plotspectrum(S)
 end
+
+@testitem "plotspectrum" setup=[ToolsSetup] begin
+    using TimeseriesTools, CairoMakie, Unitful
+    t = 0.005:0.005:1e5
+    x = colorednoise(t, u"s") * u"V" # ::AbstractTimeSeries
+
+    f = Figure()
+    ax = Axis(f[1, 1])
+    S = powerspectrum(x, 0.001) # Second arguments sets frequency spacing
+    plotspectrum!(ax, S)
+    f
+end

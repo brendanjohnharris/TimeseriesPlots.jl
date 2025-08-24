@@ -186,6 +186,8 @@ TimeseriesMakie.spectrumplot!(args...; kwargs...) = spectrumplot!(args...; kwarg
 function label_spectrum!(ax, f, s)
     uf = unit(eltype(f))
     ux = unit(eltype(s))
+    f = ustripall.(f) |> collect
+    s = ustripall.(s) |> collect
     if s isa AbstractMatrix
         ms = map(Base.Fix2(quantile, 0.1), eachrow(s))
     else
@@ -214,6 +216,7 @@ function label_spectrum!(ax, f, s)
     uf == NoUnits ? (ax.xlabel = "Frequency") : (ax.xlabel = "Frequency ($uf)")
     ux == NoUnits ? (ax.ylabel = "Spectral density") :
     (ax.ylabel = "Spectral density ($ux)")
+    return f, s
 end
 """
     plotspectrum!(ax::Axis, x::UnivariateSpectrum)
@@ -222,10 +225,7 @@ Plot the given spectrum, labelling the axes, adding units if appropriate, and ot
 function TimeseriesMakie.plotspectrum!(ax::Makie.Axis, s::UnivariateSpectrum;
                                        nonnegative = true, kwargs...)
     f, s = decompose(s)
-    f = ustripall.(f) |> collect
-    s = ustripall.(s) |> collect
-
-    label_spectrum!(ax, f, s)
+    f, s = label_spectrum!(ax, f, s)
     spectrumplot!(ax, f, s; nonnegative, kwargs...)
 end
 function TimeseriesMakie.plotspectrum(s; axis = (), kwargs...)
@@ -241,10 +241,7 @@ Plot the given spectrum, labelling the axes, adding units if appropriate, and ad
 """
 function TimeseriesMakie.plotspectrum!(ax::Makie.Axis, s::MultivariateSpectrum; kwargs...)
     f, v, s = decompose(s)
-    f = ustripall.(f) |> collect
-    s = ustripall.(s) |> collect
-
-    label_spectrum!(ax, f, s)
+    f, s = label_spectrum!(ax, f, s)
     spectrumplot!(ax, f, s; nonnegative = true, kwargs...)
 end
 
