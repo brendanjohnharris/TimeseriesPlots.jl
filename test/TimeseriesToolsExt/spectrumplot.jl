@@ -14,11 +14,12 @@ end
     t = 0.005:0.005:1e4
     x = colorednoise(t, u"s") * u"V"
     s = spectrum(x)
+    xticks = exp10.(range(log10(1), log10(100), length = 5))
 
     f = Figure(size = (1000, 1000))
     uc = Makie.UnitfulConversion(u"s^-1"; units_in_label = false)
-    ax = Axis(f[1, 1], dim1_conversion = uc, xscale = log10, yscale = log10,
-              xticks = logrange(1, 100, 5))
+    ax = Axis(f[1, 1]; dim1_conversion = uc, xscale = log10, yscale = log10,
+              xticks)
     TimeseriesMakie.spectrumplot!(s[10:end], peaks = false, annotate = false,
                                   nonnegative = true)
 
