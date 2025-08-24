@@ -1,3 +1,28 @@
+
+"""
+    shadows(x, y, z; kwargs...)
+Plots shadows of a 3D trajectory onto the enclosing axis panes.
+
+## Key attributes:
+
+`mode` = `:projection`: The shadowing mode
+
+`swapshadows` = `automatic`: Whether to swap the axes for each shadow.
+
+Can be:
+
+- `true` or `false`: Swap the axes for all shadows from their default values
+
+- `NTuple{3, Bool}`: Swap the default axes for each shadow individually (x, y, z)
+
+- `automatic`: Defaults to `(true, true, false)`
+
+`limits` = `automatic`: The targeted axis limits. To ensure the shadows align with the axes,
+it is best to provide the `Axis` limits here. If `automatic`, the limits are inferred
+from the data.
+
+_Other attributes are shared with `Makie.Lines`._
+"""
 @recipe Shadows (x,) begin
     """The shadowing mode"""
     mode = :projection
@@ -25,10 +50,10 @@ function Makie.plot!(plot::Shadows{<:Tuple{<:AbstractVector{<:Point3}}})
 
         N = length(x)
         if swapshadows === false
-            swapshadows = fill(false, 3)
+            swapshadows = (false, false, false)
         end
         if swapshadows === automatic
-            swapshadows = [true, true, false]
+            swapshadows = (true, true, false)
         end
         planes = map(limits, swapshadows) do l, s
             p = s ? last(l) .+ eps() : first(l) .- eps()

@@ -18,6 +18,8 @@ Sets the algorithm for determining the line width.
 - `<: Number` - Width is set to a constant value
 
 `linewidthscale` = `1`: Scale factor for the line width.
+
+_Other attributes are shared with `Makie.Lines`._
 """
 @recipe Kinetic (x,) begin
     cycle = :color

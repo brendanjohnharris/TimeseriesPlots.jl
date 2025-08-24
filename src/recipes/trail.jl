@@ -32,6 +32,8 @@ value of `color`.
 - A collection of numbers representing alpha values for each point in the trail.
 
 To sidestep alpha normalization, explicitly pass a vector of alpha values.
+
+_Other attributes are shared with `Makie.Lines`._
 """
 @recipe Trail (x,) begin
     linecolor = @inherit linecolor

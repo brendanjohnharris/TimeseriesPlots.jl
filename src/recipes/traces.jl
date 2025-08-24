@@ -15,6 +15,8 @@ Can be a number in data space, or one of the following modes:
     - `:close`: Successive traces are spaced by the smallest difference between them.
 
 - `offset` = `1`: The offset factor (offset * spacing)
+
+_Other attributes are shared with `Makie.Lines`._
 """
 @recipe Traces (x, y, Z) begin
     offset = 1
