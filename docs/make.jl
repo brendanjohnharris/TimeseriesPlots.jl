@@ -16,19 +16,15 @@ format = DocumenterVitepress.MarkdownVitepress(;
                                                devbranch = "main",
                                                devurl = "dev")
 
-begin
-    files = readdir(joinpath(@__DIR__, "src/reference"))
-    names = split.(files, r"\.md$") .|> first .|> uppercasefirst
-    reference = names .=> Base.joinpath.(["reference"], files)
-end
-
 makedocs(;
          authors = "brendanjohnharris <brendanjohnharris@gmail.com> and contributors",
          sitename = "TimeseriesMakie",
          format,
+         warnonly = [:cross_references],
+         modules = [TimeseriesMakie],
          pages = ["Home" => "index.md",
              "Recipes" => "recipes.md",
-             "Reference" => reference])
+             "Reference" => "reference.md"])
 
 DocumenterVitepress.deploydocs(;
                                repo = "github.com/brendanjohnharris/TimeseriesMakie.jl",

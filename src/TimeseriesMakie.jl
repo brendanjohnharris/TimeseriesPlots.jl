@@ -5,7 +5,7 @@ using Random
 
 # ? Format recipe docstrings
 using Makie.DocStringExtensions
-import Makie: DocThemer, ATTRIBUTES, DocInstances, INSTANCES
+import Makie: DocThemer, ATTRIBUTES, DocInstances, INSTANCES, Linestyle
 
 import Makie: mixin_generic_plot_attributes, mixin_colormap_attributes,
               documented_attributes, attribute_names, DocumentedAttributes, automatic

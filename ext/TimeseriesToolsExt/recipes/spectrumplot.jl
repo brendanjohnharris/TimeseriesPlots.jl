@@ -188,6 +188,8 @@ function label_spectrum!(ax, f, s)
     ux = unit(eltype(s))
     if s isa AbstractMatrix
         ms = map(Base.Fix2(quantile, 0.1), eachrow(s))
+    else
+        ms = s
     end
     idxs = (f .> 0) .& (ms .> 0)
     setlims = ((minimum(f[idxs]), maximum(f[idxs])),
